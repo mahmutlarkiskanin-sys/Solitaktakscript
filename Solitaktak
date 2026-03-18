@@ -3,48 +3,35 @@ local RunService = game:GetService("RunService")
 local UIS = game:GetService("UserInputService")
 local PlayerGui = Player:WaitForChild("PlayerGui")
 local Players = game:GetService("Players")
-local Lighting = game:GetService("Lighting")
 
 local savedCFrame = nil
 local speedActive = false
-local blockActive = false
 local spinActive = false
 local infJumpActive = false
 local antiRagdollActive = false
 local espActive = false
-local followPart = nil
 local espBoxes = {}
 
--- GİZLİ GOD MODE
-local function ApplyGodMode(char)
-    local hum = char:WaitForChild("Humanoid")
-    RunService.Stepped:Connect(function()
-        if char and hum and hum.Parent then
-            hum.MaxHealth = 9e9
-            hum.Health = 9e9
-        end
-    end)
-end
-
--- FPS OPTIMIZER
-local function OptimizeFPS(enable)
-    if enable then
-        settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
-        for _, v in pairs(game:GetDescendants()) do
-            if v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Fire") or v:IsA("Smoke") then v.Enabled = false end
-        end
-        Lighting.GlobalShadows = false
-    else
-        Lighting.GlobalShadows = true
+-- SCRIPT AÇILDIĞINDA RESET AT VE SPAWNI KAYDET
+task.spawn(function()
+    if Player.Character then
+        local hum = Player.Character:FindFirstChildOfClass("Humanoid")
+        if hum then hum.Health = 0 end -- Reset atar
     end
-end
+    
+    local newChar = Player.CharacterAdded:Wait()
+    local hrp = newChar:WaitForChild("HumanoidRootPart")
+    task.wait(0.5)
+    savedCFrame = hrp.CFrame -- Yeni doğduğu yeri kaydeder
+    print("Teleport noktası kaydedildi!")
+end)
 
 -- ESP SİSTEMİ
 local function CreateESP(targetPlayer)
     if targetPlayer == Player then return end
     local box = Drawing.new("Square")
     box.Visible = false
-    box.Color = Color3.fromRGB(255, 255, 255)
+    box.Color = Color3.fromRGB(0, 255, 150)
     box.Thickness = 1
     box.Filled = false
     espBoxes[targetPlayer] = box
@@ -75,30 +62,32 @@ ScreenGui.ResetOnSpawn = false
 
 -- AÇ/KAPAT BUTONU (S)
 local ToggleBtn = Instance.new("TextButton", ScreenGui)
-ToggleBtn.Size = UDim2.new(0, 65, 0, 65)
-ToggleBtn.Position = UDim2.new(1, -75, 0.5, -30)
-ToggleBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+ToggleBtn.Size = UDim2.new(0, 60, 0, 60)
+ToggleBtn.Position = UDim2.new(0, 10, 0.5, -30)
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 ToggleBtn.Text = "S"
 ToggleBtn.TextColor3 = Color3.fromRGB(0, 255, 150)
 ToggleBtn.Font = Enum.Font.SourceSansBold
-ToggleBtn.TextSize = 32
+ToggleBtn.TextSize = 30
 ToggleBtn.Draggable = true
-Instance.new("UICorner", ToggleBtn).CornerRadius = UDim.new(0, 32)
+Instance.new("UICorner", ToggleBtn).CornerRadius = UDim.new(1, 0)
 
 local Main = Instance.new("Frame", ScreenGui)
-Main.Size = UDim2.new(0, 230, 0, 400)
-Main.Position = UDim2.new(0.5, -115, 0.3, 0)
-Main.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-Main.Active, Main.Draggable, Main.Visible = true, true, true
+Main.Size = UDim2.new(0, 240, 0, 380)
+Main.Position = UDim2.new(0.5, -120, 0.3, 0)
+Main.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+Main.Visible = true
+Main.Active = true
+Main.Draggable = true
 Instance.new("UICorner", Main)
 
 ToggleBtn.MouseButton1Click:Connect(function() Main.Visible = not Main.Visible end)
 
--- ENVANTER PANELİ
+-- ENVANTER PANELİ (DOKUNULMADI)
 local InvPanel = Instance.new("Frame", Main)
 InvPanel.Size = UDim2.new(0, 160, 0, 250)
 InvPanel.Position = UDim2.new(1, 10, 0, 0)
-InvPanel.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+InvPanel.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 InvPanel.Visible = false
 Instance.new("UICorner", InvPanel)
 
@@ -111,115 +100,95 @@ InvScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
 Instance.new("UIListLayout", InvScroll).Padding = UDim.new(0, 5)
 
 local Title = Instance.new("TextLabel", Main)
-Title.Size, Title.Text = UDim2.new(1, 0, 0, 45), "STEAL A SOLITAKTAK"
-Title.TextColor3, Title.BackgroundColor3 = Color3.fromRGB(0, 255, 150), Color3.fromRGB(30, 30, 30)
-Title.Font, Title.TextSize = Enum.Font.SourceSansBold, 15
+Title.Size = UDim2.new(1, 0, 0, 40)
+Title.Text = "STEAL A SOLITAKTAK"
+Title.TextColor3 = Color3.fromRGB(0, 255, 150)
+Title.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+Title.Font = Enum.Font.SourceSansBold
+Title.TextSize = 16
 Instance.new("UICorner", Title)
 
 local ScrollFrame = Instance.new("ScrollingFrame", Main)
-ScrollFrame.Size = UDim2.new(1, -10, 1, -55)
-ScrollFrame.Position = UDim2.new(0, 5, 0, 50)
+ScrollFrame.Size = UDim2.new(1, -10, 1, -50)
+ScrollFrame.Position = UDim2.new(0, 5, 0, 45)
 ScrollFrame.BackgroundTransparency = 1
-ScrollFrame.ScrollBarThickness = 8
-ScrollFrame.ScrollBarImageColor3 = Color3.fromRGB(0, 255, 150)
-ScrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+ScrollFrame.ScrollBarThickness = 6
+ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 550)
 
 local UIList = Instance.new("UIListLayout", ScrollFrame)
-UIList.Padding, UIList.HorizontalAlignment = UDim.new(0, 10), Enum.HorizontalAlignment.Center
+UIList.Padding = UDim.new(0, 8)
+UIList.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
-local function AddB(txt, callback, color)
-    local b = Instance.new("TextButton", ScrollFrame)
-    b.Size, b.BackgroundColor3 = UDim2.new(0.9, 0, 0, 50)
-    b.Text, b.TextColor3, b.Font, b.TextSize = txt, Color3.fromRGB(255, 255, 255), Enum.Font.SourceSansBold, 15
-    Instance.new("UICorner", b)
-    local act = false
-    b.MouseButton1Click:Connect(function()
-        act = not act
-        if not color then b.BackgroundColor3 = act and Color3.fromRGB(0, 150, 80) or Color3.fromRGB(35, 35, 35) end
-        callback(act)
+local function AddButton(name, callback, specialColor)
+    local btn = Instance.new("TextButton", ScrollFrame)
+    btn.Size = UDim2.new(0.9, 0, 0, 45)
+    btn.BackgroundColor3 = specialColor or Color3.fromRGB(45, 45, 45)
+    btn.Text = name
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Font = Enum.Font.SourceSansBold
+    btn.TextSize = 15
+    Instance.new("UICorner", btn)
+
+    local active = false
+    btn.MouseButton1Click:Connect(function()
+        active = not active
+        if not specialColor then
+            btn.BackgroundColor3 = active and Color3.fromRGB(0, 150, 80) or Color3.fromRGB(45, 45, 45)
+        end
+        callback(active)
     end)
 end
 
--- BUTONLAR (X-RAY YOK)
-AddB("TELEPORT SPAWN", function()
+-- ÖZELLİKLER
+AddButton("TELEPORT TO SPAWN", function()
     if savedCFrame and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
         Player.Character.HumanoidRootPart.CFrame = savedCFrame
     end
-end, Color3.fromRGB(0, 100, 200))
+end, Color3.fromRGB(0, 120, 215))
 
-AddB("OPEN INVENTORY", function()
+AddButton("OPEN INVENTORY", function()
     InvPanel.Visible = not InvPanel.Visible
     if InvPanel.Visible then
         for _, v in pairs(InvScroll:GetChildren()) do if v:IsA("TextButton") then v:Destroy() end end
         for _, tool in pairs(Player.Backpack:GetChildren()) do
             local tb = Instance.new("TextButton", InvScroll)
-            tb.Size, tb.Text, tb.BackgroundColor3 = UDim2.new(1, 0, 0, 35), tool.Name, Color3.fromRGB(50, 50, 50)
+            tb.Size, tb.Text, tb.BackgroundColor3 = UDim2.new(1, 0, 0, 35), tool.Name, Color3.fromRGB(60, 60, 60)
             tb.TextColor3 = Color3.fromRGB(255, 255, 255)
             Instance.new("UICorner", tb)
             tb.MouseButton1Click:Connect(function() tool.Parent = Player.Character end)
         end
     end
-end, Color3.fromRGB(150, 0, 200))
+end, Color3.fromRGB(130, 0, 180))
 
-AddB("FPS OPTIMIZER", function(s) OptimizeFPS(s) end)
-AddB("ESP BOXES", function(s) espActive = s end)
-AddB("ANTI RAGDOLL", function(s) antiRagdollActive = s end)
-AddB("SPEED 22 BYPASS", function(s) speedActive = s end)
-AddB("INF JUMP", function(s) infJumpActive = s end)
+AddButton("SPEED 22 BYPASS", function(s) speedActive = s end)
+AddButton("SPIN BOT", function(s) spinActive = s end)
+AddButton("INF JUMP", function(s) infJumpActive = s end)
+AddButton("ESP BOXES", function(s) espActive = s end)
+AddButton("ANTI RAGDOLL", function(s) antiRagdollActive = s end)
 
-local BlockBtn = AddB("BLUE BLOCK", function(act)
-    blockActive = act
-    if blockActive then
-        followPart = Instance.new("Part", workspace)
-        followPart.Size, followPart.Transparency, followPart.Color, followPart.Anchored = Vector3.new(12,1,12), 0.6, Color3.fromRGB(0, 120, 255), true
-    else
-        if followPart then followPart:Destroy() end
+-- DÖNGÜLER
+RunService.Stepped:Connect(function()
+    local char = Player.Character
+    if char and char:FindFirstChild("HumanoidRootPart") then
+        local hrp = char.HumanoidRootPart
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        if antiRagdollActive and hum then
+            hum:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+            hum:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+        end
+        if speedActive and hum and hum.MoveDirection.Magnitude > 0 then
+            hrp.CFrame = hrp.CFrame + (hum.MoveDirection * (22/50))
+        end
+        if spinActive then 
+            hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(50), 0) 
+        end
     end
 end)
 
-AddB("SPIN BOT", function(s) spinActive = s end)
-
--- DÖNGÜLER
 UIS.JumpRequest:Connect(function()
     if infJumpActive and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
         Player.Character.HumanoidRootPart.Velocity = Vector3.new(Player.Character.HumanoidRootPart.Velocity.X, 50, Player.Character.HumanoidRootPart.Velocity.Z)
     end
 end)
 
-RunService.RenderStepped:Connect(function()
-    UpdateESP()
-    if blockActive and followPart and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
-        followPart.CFrame = Player.Character.HumanoidRootPart.CFrame * CFrame.new(0, -3.5, 0)
-    end
-end)
-
-RunService.Stepped:Connect(function()
-    local char = Player.Character
-    if char and char:FindFirstChild("HumanoidRootPart") then
-        local hrp, hum = char.HumanoidRootPart, char:FindFirstChildOfClass("Humanoid")
-        if antiRagdollActive then
-            hum:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
-            hum:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
-        end
-        if speedActive and hum.MoveDirection.Magnitude > 0 then
-            hrp.CFrame = hrp.CFrame + (hum.MoveDirection * (22/50))
-        end
-        if spinActive then hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(55), 0) end
-    end
-end)
-
-local Close = Instance.new("TextButton", Main)
-Close.Size, Close.Position, Close.Text = UDim2.new(0, 35, 0, 35), UDim2.new(1, -40, 0, 5), "X"
-Close.BackgroundColor3, Close.TextColor3 = Color3.fromRGB(150, 0, 0), Color3.fromRGB(255, 255, 255)
-Instance.new("UICorner", Close)
-Close.MouseButton1Click:Connect(function() 
-    if followPart then followPart:Destroy() end 
-    for _, box in pairs(espBoxes) do box:Remove() end
-    ScreenGui:Destroy() 
-end)
-
-if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
-    savedCFrame = Player.Character.HumanoidRootPart.CFrame
-    Player.Character:BreakJoints()
-end
-Player.CharacterAdded:Connect(ApplyGodMode)
+RunService.RenderStepped:Connect(UpdateESP)
