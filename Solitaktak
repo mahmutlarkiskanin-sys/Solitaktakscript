@@ -15,7 +15,7 @@ local espActive = false
 local followPart = nil
 local espBoxes = {}
 
--- GOD MODE
+-- GİZLİ GOD MODE
 local function ApplyGodMode(char)
     local hum = char:WaitForChild("Humanoid")
     RunService.Stepped:Connect(function()
@@ -31,11 +31,9 @@ local function OptimizeFPS(enable)
     if enable then
         settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
         for _, v in pairs(game:GetDescendants()) do
-            if v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Fire") or v:IsA("Smoke") then
-                v.Enabled = false
-            end
+            if v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Fire") or v:IsA("Smoke") then v.Enabled = false end
         end
-         Lighting.GlobalShadows = false
+        Lighting.GlobalShadows = false
     else
         Lighting.GlobalShadows = true
     end
@@ -69,7 +67,7 @@ end
 for _, p in pairs(Players:GetPlayers()) do CreateESP(p) end
 Players.PlayerAdded:Connect(CreateESP)
 
--- GUI ANA EKRAN
+-- GUI OLUŞTURMA
 if PlayerGui:FindFirstChild("StealASolitaktak") then PlayerGui.StealASolitaktak:Destroy() end
 local ScreenGui = Instance.new("ScreenGui", PlayerGui)
 ScreenGui.Name = "StealASolitaktak"
@@ -96,7 +94,7 @@ Instance.new("UICorner", Main)
 
 ToggleBtn.MouseButton1Click:Connect(function() Main.Visible = not Main.Visible end)
 
--- ENVANTER PANELİ (GİZLİ PANEL)
+-- ENVANTER PANELİ
 local InvPanel = Instance.new("Frame", Main)
 InvPanel.Size = UDim2.new(0, 160, 0, 250)
 InvPanel.Position = UDim2.new(1, 10, 0, 0)
@@ -115,7 +113,7 @@ Instance.new("UIListLayout", InvScroll).Padding = UDim.new(0, 5)
 local Title = Instance.new("TextLabel", Main)
 Title.Size, Title.Text = UDim2.new(1, 0, 0, 45), "STEAL A SOLITAKTAK"
 Title.TextColor3, Title.BackgroundColor3 = Color3.fromRGB(0, 255, 150), Color3.fromRGB(30, 30, 30)
-Title.Font, Title.TextSize = Enum.Font.SourceSansBold, 18
+Title.Font, Title.TextSize = Enum.Font.SourceSansBold, 15
 Instance.new("UICorner", Title)
 
 local ScrollFrame = Instance.new("ScrollingFrame", Main)
@@ -132,7 +130,7 @@ UIList.Padding, UIList.HorizontalAlignment = UDim.new(0, 10), Enum.HorizontalAli
 local function AddB(txt, callback, color)
     local b = Instance.new("TextButton", ScrollFrame)
     b.Size, b.BackgroundColor3 = UDim2.new(0.9, 0, 0, 50)
-    b.Text, b.TextColor3, b.Font, b.TextSize = txt, Color3.fromRGB(255, 255, 255), Enum.Font.SourceSansBold, 16
+    b.Text, b.TextColor3, b.Font, b.TextSize = txt, Color3.fromRGB(255, 255, 255), Enum.Font.SourceSansBold, 15
     Instance.new("UICorner", b)
     local act = false
     b.MouseButton1Click:Connect(function()
@@ -142,7 +140,7 @@ local function AddB(txt, callback, color)
     end)
 end
 
--- BUTONLAR
+-- BUTONLAR (X-RAY YOK)
 AddB("TELEPORT SPAWN", function()
     if savedCFrame and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
         Player.Character.HumanoidRootPart.CFrame = savedCFrame
@@ -181,7 +179,7 @@ end)
 
 AddB("SPIN BOT", function(s) spinActive = s end)
 
--- DÖNGÜLER VE DÜZELTMELER
+-- DÖNGÜLER
 UIS.JumpRequest:Connect(function()
     if infJumpActive and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
         Player.Character.HumanoidRootPart.Velocity = Vector3.new(Player.Character.HumanoidRootPart.Velocity.X, 50, Player.Character.HumanoidRootPart.Velocity.Z)
