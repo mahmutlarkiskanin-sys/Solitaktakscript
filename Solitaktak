@@ -15,6 +15,7 @@ local espActive = false
 local followPart = nil
 local espBoxes = {}
 
+-- GOD MODE
 local function ApplyGodMode(char)
     local hum = char:WaitForChild("Humanoid")
     RunService.Stepped:Connect(function()
@@ -25,6 +26,7 @@ local function ApplyGodMode(char)
     end)
 end
 
+-- FPS OPTIMIZER
 local function OptimizeFPS(enable)
     if enable then
         settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
@@ -39,6 +41,7 @@ local function OptimizeFPS(enable)
     end
 end
 
+-- ESP SİSTEMİ
 local function CreateESP(targetPlayer)
     if targetPlayer == Player then return end
     local box = Drawing.new("Square")
@@ -66,11 +69,13 @@ end
 for _, p in pairs(Players:GetPlayers()) do CreateESP(p) end
 Players.PlayerAdded:Connect(CreateESP)
 
+-- GUI ANA EKRAN
 if PlayerGui:FindFirstChild("StealASolitaktak") then PlayerGui.StealASolitaktak:Destroy() end
 local ScreenGui = Instance.new("ScreenGui", PlayerGui)
 ScreenGui.Name = "StealASolitaktak"
 ScreenGui.ResetOnSpawn = false
 
+-- AÇ/KAPAT BUTONU (S)
 local ToggleBtn = Instance.new("TextButton", ScreenGui)
 ToggleBtn.Size = UDim2.new(0, 65, 0, 65)
 ToggleBtn.Position = UDim2.new(1, -75, 0.5, -30)
@@ -86,14 +91,26 @@ local Main = Instance.new("Frame", ScreenGui)
 Main.Size = UDim2.new(0, 230, 0, 400)
 Main.Position = UDim2.new(0.5, -115, 0.3, 0)
 Main.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-Main.Active = true
-Main.Draggable = true
-Main.Visible = true
+Main.Active, Main.Draggable, Main.Visible = true, true, true
 Instance.new("UICorner", Main)
 
-ToggleBtn.MouseButton1Click:Connect(function()
-    Main.Visible = not Main.Visible
-end)
+ToggleBtn.MouseButton1Click:Connect(function() Main.Visible = not Main.Visible end)
+
+-- ENVANTER PANELİ (GİZLİ PANEL)
+local InvPanel = Instance.new("Frame", Main)
+InvPanel.Size = UDim2.new(0, 160, 0, 250)
+InvPanel.Position = UDim2.new(1, 10, 0, 0)
+InvPanel.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+InvPanel.Visible = false
+Instance.new("UICorner", InvPanel)
+
+local InvScroll = Instance.new("ScrollingFrame", InvPanel)
+InvScroll.Size = UDim2.new(1, -10, 1, -10)
+InvScroll.Position = UDim2.new(0, 5, 0, 5)
+InvScroll.BackgroundTransparency = 1
+InvScroll.ScrollBarThickness = 5
+InvScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+Instance.new("UIListLayout", InvScroll).Padding = UDim.new(0, 5)
 
 local Title = Instance.new("TextLabel", Main)
 Title.Size, Title.Text = UDim2.new(1, 0, 0, 45), "STEAL A SOLITAKTAK"
@@ -107,7 +124,6 @@ ScrollFrame.Position = UDim2.new(0, 5, 0, 50)
 ScrollFrame.BackgroundTransparency = 1
 ScrollFrame.ScrollBarThickness = 8
 ScrollFrame.ScrollBarImageColor3 = Color3.fromRGB(0, 255, 150)
-ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
 ScrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
 
 local UIList = Instance.new("UIListLayout", ScrollFrame)
@@ -115,7 +131,7 @@ UIList.Padding, UIList.HorizontalAlignment = UDim.new(0, 10), Enum.HorizontalAli
 
 local function AddB(txt, callback, color)
     local b = Instance.new("TextButton", ScrollFrame)
-    b.Size, b.BackgroundColor3 = UDim2.new(0.9, 0, 0, 50), color or Color3.fromRGB(35, 35, 35)
+    b.Size, b.BackgroundColor3 = UDim2.new(0.9, 0, 0, 50)
     b.Text, b.TextColor3, b.Font, b.TextSize = txt, Color3.fromRGB(255, 255, 255), Enum.Font.SourceSansBold, 16
     Instance.new("UICorner", b)
     local act = false
@@ -126,11 +142,26 @@ local function AddB(txt, callback, color)
     end)
 end
 
+-- BUTONLAR
 AddB("TELEPORT SPAWN", function()
     if savedCFrame and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
         Player.Character.HumanoidRootPart.CFrame = savedCFrame
     end
 end, Color3.fromRGB(0, 100, 200))
+
+AddB("OPEN INVENTORY", function()
+    InvPanel.Visible = not InvPanel.Visible
+    if InvPanel.Visible then
+        for _, v in pairs(InvScroll:GetChildren()) do if v:IsA("TextButton") then v:Destroy() end end
+        for _, tool in pairs(Player.Backpack:GetChildren()) do
+            local tb = Instance.new("TextButton", InvScroll)
+            tb.Size, tb.Text, tb.BackgroundColor3 = UDim2.new(1, 0, 0, 35), tool.Name, Color3.fromRGB(50, 50, 50)
+            tb.TextColor3 = Color3.fromRGB(255, 255, 255)
+            Instance.new("UICorner", tb)
+            tb.MouseButton1Click:Connect(function() tool.Parent = Player.Character end)
+        end
+    end
+end, Color3.fromRGB(150, 0, 200))
 
 AddB("FPS OPTIMIZER", function(s) OptimizeFPS(s) end)
 AddB("ESP BOXES", function(s) espActive = s end)
@@ -149,6 +180,13 @@ local BlockBtn = AddB("BLUE BLOCK", function(act)
 end)
 
 AddB("SPIN BOT", function(s) spinActive = s end)
+
+-- DÖNGÜLER VE DÜZELTMELER
+UIS.JumpRequest:Connect(function()
+    if infJumpActive and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+        Player.Character.HumanoidRootPart.Velocity = Vector3.new(Player.Character.HumanoidRootPart.Velocity.X, 50, Player.Character.HumanoidRootPart.Velocity.Z)
+    end
+end)
 
 RunService.RenderStepped:Connect(function()
     UpdateESP()
@@ -187,4 +225,3 @@ if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
     Player.Character:BreakJoints()
 end
 Player.CharacterAdded:Connect(ApplyGodMode)
-
