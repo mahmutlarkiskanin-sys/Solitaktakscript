@@ -1,0 +1,190 @@
+local Player = game:GetService("Players").LocalPlayer
+local RunService = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
+local PlayerGui = Player:WaitForChild("PlayerGui")
+local Players = game:GetService("Players")
+local Lighting = game:GetService("Lighting")
+
+local savedCFrame = nil
+local speedActive = false
+local blockActive = false
+local spinActive = false
+local infJumpActive = false
+local antiRagdollActive = false
+local espActive = false
+local followPart = nil
+local espBoxes = {}
+
+local function ApplyGodMode(char)
+    local hum = char:WaitForChild("Humanoid")
+    RunService.Stepped:Connect(function()
+        if char and hum and hum.Parent then
+            hum.MaxHealth = 9e9
+            hum.Health = 9e9
+        end
+    end)
+end
+
+local function OptimizeFPS(enable)
+    if enable then
+        settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+        for _, v in pairs(game:GetDescendants()) do
+            if v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Fire") or v:IsA("Smoke") then
+                v.Enabled = false
+            end
+        end
+         Lighting.GlobalShadows = false
+    else
+        Lighting.GlobalShadows = true
+    end
+end
+
+local function CreateESP(targetPlayer)
+    if targetPlayer == Player then return end
+    local box = Drawing.new("Square")
+    box.Visible = false
+    box.Color = Color3.fromRGB(255, 255, 255)
+    box.Thickness = 1
+    box.Filled = false
+    espBoxes[targetPlayer] = box
+end
+
+local function UpdateESP()
+    for targetPlayer, box in pairs(espBoxes) do
+        if espActive and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local pos, onScreen = workspace.CurrentCamera:WorldToViewportPoint(targetPlayer.Character.HumanoidRootPart.Position)
+            if onScreen then
+                local size = Vector2.new(1000 / pos.Z, 1500 / pos.Z)
+                box.Size = size
+                box.Position = Vector2.new(pos.X - size.X / 2, pos.Y - size.Y / 2)
+                box.Visible = true
+            else box.Visible = false end
+        else box.Visible = false end
+    end
+end
+
+for _, p in pairs(Players:GetPlayers()) do CreateESP(p) end
+Players.PlayerAdded:Connect(CreateESP)
+
+if PlayerGui:FindFirstChild("StealASolitaktak") then PlayerGui.StealASolitaktak:Destroy() end
+local ScreenGui = Instance.new("ScreenGui", PlayerGui)
+ScreenGui.Name = "StealASolitaktak"
+ScreenGui.ResetOnSpawn = false
+
+local ToggleBtn = Instance.new("TextButton", ScreenGui)
+ToggleBtn.Size = UDim2.new(0, 65, 0, 65)
+ToggleBtn.Position = UDim2.new(1, -75, 0.5, -30)
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+ToggleBtn.Text = "S"
+ToggleBtn.TextColor3 = Color3.fromRGB(0, 255, 150)
+ToggleBtn.Font = Enum.Font.SourceSansBold
+ToggleBtn.TextSize = 32
+ToggleBtn.Draggable = true
+Instance.new("UICorner", ToggleBtn).CornerRadius = UDim.new(0, 32)
+
+local Main = Instance.new("Frame", ScreenGui)
+Main.Size = UDim2.new(0, 230, 0, 400)
+Main.Position = UDim2.new(0.5, -115, 0.3, 0)
+Main.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+Main.Active = true
+Main.Draggable = true
+Main.Visible = true
+Instance.new("UICorner", Main)
+
+ToggleBtn.MouseButton1Click:Connect(function()
+    Main.Visible = not Main.Visible
+end)
+
+local Title = Instance.new("TextLabel", Main)
+Title.Size, Title.Text = UDim2.new(1, 0, 0, 45), "STEAL A SOLITAKTAK"
+Title.TextColor3, Title.BackgroundColor3 = Color3.fromRGB(0, 255, 150), Color3.fromRGB(30, 30, 30)
+Title.Font, Title.TextSize = Enum.Font.SourceSansBold, 18
+Instance.new("UICorner", Title)
+
+local ScrollFrame = Instance.new("ScrollingFrame", Main)
+ScrollFrame.Size = UDim2.new(1, -10, 1, -55)
+ScrollFrame.Position = UDim2.new(0, 5, 0, 50)
+ScrollFrame.BackgroundTransparency = 1
+ScrollFrame.ScrollBarThickness = 8
+ScrollFrame.ScrollBarImageColor3 = Color3.fromRGB(0, 255, 150)
+ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+ScrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+
+local UIList = Instance.new("UIListLayout", ScrollFrame)
+UIList.Padding, UIList.HorizontalAlignment = UDim.new(0, 10), Enum.HorizontalAlignment.Center
+
+local function AddB(txt, callback, color)
+    local b = Instance.new("TextButton", ScrollFrame)
+    b.Size, b.BackgroundColor3 = UDim2.new(0.9, 0, 0, 50), color or Color3.fromRGB(35, 35, 35)
+    b.Text, b.TextColor3, b.Font, b.TextSize = txt, Color3.fromRGB(255, 255, 255), Enum.Font.SourceSansBold, 16
+    Instance.new("UICorner", b)
+    local act = false
+    b.MouseButton1Click:Connect(function()
+        act = not act
+        if not color then b.BackgroundColor3 = act and Color3.fromRGB(0, 150, 80) or Color3.fromRGB(35, 35, 35) end
+        callback(act)
+    end)
+end
+
+AddB("TELEPORT SPAWN", function()
+    if savedCFrame and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+        Player.Character.HumanoidRootPart.CFrame = savedCFrame
+    end
+end, Color3.fromRGB(0, 100, 200))
+
+AddB("FPS OPTIMIZER", function(s) OptimizeFPS(s) end)
+AddB("ESP BOXES", function(s) espActive = s end)
+AddB("ANTI RAGDOLL", function(s) antiRagdollActive = s end)
+AddB("SPEED 22 BYPASS", function(s) speedActive = s end)
+AddB("INF JUMP", function(s) infJumpActive = s end)
+
+local BlockBtn = AddB("BLUE BLOCK", function(act)
+    blockActive = act
+    if blockActive then
+        followPart = Instance.new("Part", workspace)
+        followPart.Size, followPart.Transparency, followPart.Color, followPart.Anchored = Vector3.new(12,1,12), 0.6, Color3.fromRGB(0, 120, 255), true
+    else
+        if followPart then followPart:Destroy() end
+    end
+end)
+
+AddB("SPIN BOT", function(s) spinActive = s end)
+
+RunService.RenderStepped:Connect(function()
+    UpdateESP()
+    if blockActive and followPart and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+        followPart.CFrame = Player.Character.HumanoidRootPart.CFrame * CFrame.new(0, -3.5, 0)
+    end
+end)
+
+RunService.Stepped:Connect(function()
+    local char = Player.Character
+    if char and char:FindFirstChild("HumanoidRootPart") then
+        local hrp, hum = char.HumanoidRootPart, char:FindFirstChildOfClass("Humanoid")
+        if antiRagdollActive then
+            hum:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+            hum:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+        end
+        if speedActive and hum.MoveDirection.Magnitude > 0 then
+            hrp.CFrame = hrp.CFrame + (hum.MoveDirection * (22/50))
+        end
+        if spinActive then hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(55), 0) end
+    end
+end)
+
+local Close = Instance.new("TextButton", Main)
+Close.Size, Close.Position, Close.Text = UDim2.new(0, 35, 0, 35), UDim2.new(1, -40, 0, 5), "X"
+Close.BackgroundColor3, Close.TextColor3 = Color3.fromRGB(150, 0, 0), Color3.fromRGB(255, 255, 255)
+Instance.new("UICorner", Close)
+Close.MouseButton1Click:Connect(function() 
+    if followPart then followPart:Destroy() end 
+    for _, box in pairs(espBoxes) do box:Remove() end
+    ScreenGui:Destroy() 
+end)
+
+if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") then
+    savedCFrame = Player.Character.HumanoidRootPart.CFrame
+    Player.Character:BreakJoints()
+end
+Player.CharacterAdded:Connect(ApplyGodMode)
+
